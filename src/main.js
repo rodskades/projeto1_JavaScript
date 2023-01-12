@@ -1,11 +1,11 @@
 import api from './api';
 
+// Lista de repositórios:
+let repositorios = JSON.parse(localStorage.getItem('repositorios')) || [];
+
 class App {
     // Construtor:
     constructor(){
-        // Lista de repositórios:
-        this.repositorios = [];
-
         // Form
         this.formulario = document.querySelector('form');
 
@@ -14,6 +14,8 @@ class App {
 
         // Método para registrar os eventos do form:
         this.registrarEventos();
+
+        this.renderizarTela();
     }
 
     registrarEventos(){
@@ -42,7 +44,7 @@ class App {
             let {name, description, html_url, owner: {avatar_url} } = response.data;
 
             // Adicionar o repositório na lista:
-            this.repositorios.push({
+            repositorios.push({
                 nome: name,
                 descricao: description,
                 avatar_url,
@@ -51,6 +53,9 @@ class App {
 
             // Renderizar a tela
             this.renderizarTela();
+
+            // Salvar os dados no banco de dados:
+            this.salvarDados();
         }catch(erro){
             // Limpa buscando...
             this.lista.removeChild(document.querySelector('.list-group-item-warning'));
@@ -85,7 +90,7 @@ class App {
         this.lista.innerHTML = '';
 
         // Percorrer toda a lista de repositórios e criar os elementos:
-        this.repositorios.forEach(repositorio => {
+        repositorios.forEach(repositorio => {
             // Criando um elemento <li>
             let li = document.createElement('li');
             li.setAttribute('class', 'list-group-item list-group-item-action');
@@ -123,7 +128,25 @@ class App {
 
             // Adiciona o foco no input:
             this.formulario.querySelector('input[id=repositorio]').focus();
+
+            let self = this;
+            li.onclick = function(){
+                let item = this.childNodes[1].innerHTML;
+                
+                repositorios = repositorios.filter(function(el){
+                    return el.nome != item;
+                });
+
+                self.renderizarTela();
+
+                self.salvarDados();
+            }
         });
+    }
+
+    // Função para salvar os dados no Storage
+    salvarDados(){
+        localStorage.setItem('repositorios', JSON.stringify(repositorios));
     }
 }
 
